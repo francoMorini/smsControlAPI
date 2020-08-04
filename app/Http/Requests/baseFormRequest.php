@@ -5,6 +5,9 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 
+use Exception;
+use App\Exceptions\SmsApiException;
+
 abstract class baseFormRequest extends FormRequest
 {
 
@@ -22,9 +25,15 @@ abstract class baseFormRequest extends FormRequest
 
             if ( $validator->fails() ) {
 
-                dd('Test');
+                $errorsToRender = [];
 
-                throw new Exception( $validator->errors()->getMessages() );
+                foreach ( $validator->errors()->getMessages() as $key => $value ) {
+
+                    $errorsToRender[ $key ] = $value[0];
+
+                }
+
+                throw new SmsApiException( json_encode( $errorsToRender ) );
 
             }
 

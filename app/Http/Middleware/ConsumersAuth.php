@@ -12,6 +12,22 @@ use App\Consumer;
 class ConsumersAuth
 {
 
+    /*
+    |--------------------------------------------------------------------------
+    | Hash and secret for testing
+    |--------------------------------------------------------------------------
+    |
+    | Here is the encrypted hash that you can use for the consumers testing
+    | with secret keys.
+    | 
+    | Consumer Hash:   04c524dfc09c7e96853b6f48e154ea69
+    | Consumer Secret: s?v.m9H}^Em]ZBu)toGt12b0tf6Cmd
+    |
+    | Devices Hash:   4951706773b1ddbd451f01ef6a477da4
+    | Devices Secret: .Em~@@lN4!TNI,s9pB^x4-~aCKvb-J
+    |
+    */
+
     private $hash;
     private $salt = 'W{`A_C+dVvP$s5%]/E"g:]K3?Zm%`K'; // Your API salt for the consumers
 
@@ -48,8 +64,8 @@ class ConsumersAuth
 
             }
 
-            $consumerModel = new Consumer();
-            $exists        = $consumerModel->thisConsumerExists( $data[ Controller::SECRET ] );
+            $consumer = new Consumer();
+            $exists   = $consumer->thisConsumerExists( $data[ Controller::SECRET ] );
 
             if ( !$exists ) { throw new Exception( 'Unauthorized.' ); }
 

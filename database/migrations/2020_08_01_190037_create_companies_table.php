@@ -30,18 +30,19 @@ class CreateCompaniesTable extends Migration
         } );
 
         // Company and device for test
-        $companyModel = new Company();
-        $companyModel->{ Company::FIELD_NAME } = 'Test Company';
-        $companyModel->save();
+        $company = new Company();
+        $company->{ Company::FIELD_NAME } = 'Test Company';
+        $company->save();
 
-        $deviceModel = new Device();
-        $deviceModel->{ Device::FIELD_UUID }          = 'abcd1234';
-        $deviceModel->{ Device::FIELD_DEVICE_NUMBER } = '123456789';
-        $deviceModel->{ Device::FIELD_COMPANY }       = $companyModel->id;
-        $deviceModel->save();
+        $device = new Device();
+        $device->{ Device::FIELD_UUID }          = 'abcd1234';
+        $device->{ Device::FIELD_DEVICE_NUMBER } = '123456789';
+        $device->{ Device::FIELD_COMPANY }       = $company->id;
+        $device->{ Device::FIELD_IS_ACTIVE }     = 1;
+        $device->save();
 
-        unset( $companyModel );
-        unset( $deviceModel );
+        unset( $company );
+        unset( $device );
 
     }
 

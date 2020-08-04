@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Validation\Validator;
 
-class getPendingMessagesToSend extends baseFormRequest
+class changeMessageToSent extends baseFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,9 +29,10 @@ class getPendingMessagesToSend extends baseFormRequest
 
         return [
 
-            Controller::HASH      => 'required',
-            Controller::SECRET    => 'required',
-            Controller::DEVICE_ID => 'required|integer',
+            Controller::HASH       => 'required',
+            Controller::SECRET     => 'required',
+            Controller::DEVICE_ID  => 'required|integer', // Not necessary but you can make it required if you want.
+            Controller::MESSAGE_ID => 'required|integer',
 
         ];
 

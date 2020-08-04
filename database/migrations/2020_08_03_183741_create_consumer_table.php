@@ -31,11 +31,17 @@ class CreateConsumerTable extends Migration
         });
 
         // For testing
-        $consumerModel = new Consumer();
-        $consumerModel->{ Consumer::FIELD_NAME }       = 'Default Costumer';
-        $consumerModel->{ Consumer::FIELD_SECRET_KEY } = 'W{`A_C+dVvP$s5%]/E"g:]K3?Zm%`K';
-        $consumerModel->save();
-        unset( $consumerModel );
+        $consumer = new Consumer();
+        $consumer->{ Consumer::FIELD_NAME }       = 'Client Costumer';
+        $consumer->{ Consumer::FIELD_SECRET_KEY } = 's?v.m9H}^Em]ZBu)toGt12b0tf6Cmd';
+        $consumer->save();
+
+        $consumer = new Consumer();
+        $consumer->{ Consumer::FIELD_NAME }       = 'Your Devices';
+        $consumer->{ Consumer::FIELD_SECRET_KEY } = '.Em~@@lN4!TNI,s9pB^x4-~aCKvb-J';
+        $consumer->save();
+
+        unset( $consumer );
 
     }
 

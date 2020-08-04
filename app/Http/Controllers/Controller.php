@@ -33,6 +33,7 @@ class Controller extends BaseController
 	const KEEP           = 'keep';
 	const DEVICE_ID      = 'device_id';
 	const LIMIT          = 'limit';
+	const MESSAGE_ID     = 'message_id';
 
 	/**/
 	public function setInternalErrorCode ( $controller = null, $action = null ) 
@@ -58,8 +59,8 @@ class Controller extends BaseController
 	public function response ( $data = [] ) 
 	{
 
-		$errorModel = new Errors();
-		return $errorModel->goodResponse( $data );
+		$error = new Errors();
+		return $error->goodResponse( $data );
 
 	}
 

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Device;
 
 use Exception;
+use App\Exceptions\SmsApiException;
 
 class Message extends Model
 {
@@ -56,22 +57,22 @@ class Message extends Model
 
 			if ( empty( $clientNumber ) ) { return null; }
 
-			$deviceModel = new Device();
+			$device = new Device();
 
 			$result = DB::table( $this->getTable() . ' AS messages' )
-			->select( $deviceModel::FIELD_COMPANY )
+			->select( $device::FIELD_COMPANY )
 			->join( 
-				$deviceModel->getTable() . ' AS devices', 
+				$device->getTable() . ' AS devices', 
 				'messages.' . self::FIELD_DEVICE_ID, 
 				'=', 
-				'devices.' . $deviceModel->getKeyName() 
+				'devices.' . $device->getKeyName() 
 			)
 			->where( 'messages.' . self::FIELD_CLIENT_NUMBER, '=', $clientNumber )
 			->where( self::FIELD_SEND_DATE, '>=', DB::raw( 'DATE_SUB(NOW(), INTERVAL 1 DAY)' ) )
 			->orderByDesc( self::FIELD_SEND_DATE )
 			->first();
 			
-			unset( $deviceModel );
+			unset( $device );
 
 			if ( empty( $result ) ) { 
 				return null; 
@@ -103,8 +104,8 @@ class Message extends Model
 
 			}
 
-			$deviceModel    = new Device();
-			$emittingDevice = ( empty( $emittingDevice ) ) ? $deviceModel->getOneEmittingDevice( $emittingDevice, $company, $excludedCompany ) : $emittingDevice;
+			$device    = new Device();
+			$emittingDevice = ( empty( $emittingDevice ) ) ? $device->getOneEmittingDevice( $emittingDevice, $company, $excludedCompany ) : $emittingDevice;
 
 			DB::beginTransaction();
 
@@ -138,7 +139,7 @@ class Message extends Model
 
 		try {
 
-			$message = DB::table( $this->getTable() )
+			$pendingMessage = DB::table( $this->getTable() )
 			->select( $this->getKeyName(), self::FIELD_MESSAGE, self::FIELD_CLIENT_NUMBER )
 			->where( [
 
@@ -150,11 +151,66 @@ class Message extends Model
 			] )
 			->first();
 
-			return $message;
+			if ( empty( $pendingMessage ) ) { return null; }
+
+			// Now we change the message status to "taken", 
+			// to prevent it from being taken again.
+
+			$message = self::find( $pendingMessage->{ $this->getKeyName() } );
+			$message->{ self::FIELD_STATUS } = 2;
+			$message->save();
+
+			return $pendingMessage;
 
 		} catch ( Exception $e ) { throw $e; }
 
 		return null;
+
+	}
+
+	/**/
+	public function changeMessageToSent ( $message_id, $device_id = null ) 
+	{
+
+		try {
+
+			DB::beginTransaction();
+
+			$message = self::find( $message_id );
+
+			if ( empty( $message ) ) {
+				throw new SmsApiException( 'The informed Message does not exists.' );
+			}
+
+			$message->{ self::FIELD_STATUS } = 1;
+			$message->save();
+
+			// If the device_id is a required field into Requests form.
+
+			if ( !empty( $device_id ) && $message->{ self::FIELD_DEVICE_ID } != $device_id ) {
+				throw new SmsApiException( 'The informed Device does not match with the message emitter Device.' );
+			}
+
+			// We change the last used date of the emitter device.
+
+			$usedDevice = Device::find( $message->{ self::FIELD_DEVICE_ID } );
+
+			$usedDevice->{ Device::FIELD_LAST_USED_DATE } = date( 'Y-m-d H:i:s' );
+			$usedDevice->save();
+
+			// If nothing wrong happend
+			
+			DB::commit();
+			return true;
+
+		} catch ( Exception $e ) { 
+
+			DB::rollBack();
+			throw $e; 
+
+		}
+
+		return false;
 
 	}
 

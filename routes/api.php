@@ -14,6 +14,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+/*
+|--------------------------------------------------------------------------
+| Consumers Routes
+|--------------------------------------------------------------------------
+|
+| In this section the routes are exclusive for consumers who needs to 
+| send a message.
+|
+*/
 Route::group( [ 'middleware' => [ 'consumersAuth', ] ], function () {
 
 	// Here the protected routes. This give you a better control of your API consumers.
@@ -21,8 +31,18 @@ Route::group( [ 'middleware' => [ 'consumersAuth', ] ], function () {
 
 } );
 
-// Sms
-Route::post( '/pendingtosend', 'SmsController@getPendingMessagesToSend');
+/*
+|--------------------------------------------------------------------------
+| Emmiter Devices Routes
+|--------------------------------------------------------------------------
+|
+| This routes are exclusive for Devices that send and recieve messages.
+|
+*/
+Route::group( [ 'middleware' => [ 'consumersAuth', ] ], function () {
 
-// Devices
-Route::post( '/install', 'DeviceController@newDevice');
+	Route::post( '/pendingtosend', 'SmsController@getPendingMessagesToSend');
+	Route::post( '/install', 'DeviceController@newDevice');
+	Route::post( '/sent', 'SmsController@changeMessageToSent' );
+
+} );

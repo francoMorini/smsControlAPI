@@ -8,6 +8,7 @@ use App\Message;
 use App\Company;
 
 use Exception;
+use App\Exceptions\SmsApiException;
 
 class Device extends Model
 {
@@ -51,54 +52,55 @@ class Device extends Model
 
     	try {
 
-    		$messageModel = new Message();
-            $companyModel = new Company();
+    		$message = new Message();
+            $company = new Company();
 
             $FIELD_DEVICE_IS_ACTIVE          = self::FIELD_IS_ACTIVE;
             $FIELD_DEVICE_LAST_USED_DATE     = self::FIELD_LAST_USED_DATE;
             $FIELD_DEVICE_COMPANY_ID         = self::FIELD_COMPANY;
-            $FIELD_COMPANY_LAST_USED_DATE    = $companyModel::FIELD_LAST_USED;
-            $FIELD_COMPANY_NAME              = $companyModel::FIELD_NAME;
-            $FIELD_COMPANY_IS_ACTIVE         = $companyModel::FIELD_IS_ACTIVE;
-            $FIELD_MESSAGE_DEVICE_ID         = $messageModel::FIELD_DEVICE_ID;
-            $FIELD_MESSAGE_FROM_US_TO_CLIENT = $messageModel::FIELD_FROM_US_TO_CLIENT;
-            $FIELD_MESSAGE_STATUS            = $messageModel::FIELD_STATUS;
+            $FIELD_COMPANY_LAST_USED_DATE    = $company::FIELD_LAST_USED;
+            $FIELD_COMPANY_NAME              = $company::FIELD_NAME;
+            $FIELD_COMPANY_IS_ACTIVE         = $company::FIELD_IS_ACTIVE;
+            $FIELD_MESSAGE_DEVICE_ID         = $message::FIELD_DEVICE_ID;
+            $FIELD_MESSAGE_FROM_US_TO_CLIENT = $message::FIELD_FROM_US_TO_CLIENT;
+            $FIELD_MESSAGE_STATUS            = $message::FIELD_STATUS;
 
     		$sql = "SELECT {$this->getKeyName()} FROM (
                     
                     SELECT 
 
                         device.{$this->getKeyName()},
+                        company.{$FIELD_COMPANY_NAME},
                         company.{$FIELD_COMPANY_LAST_USED_DATE},
                         device.{$FIELD_DEVICE_LAST_USED_DATE}
 
                     FROM {$this->getTable()} as device 
-                    INNER JOIN {$companyModel->getTable()} as company ON device.{$FIELD_DEVICE_COMPANY_ID} = company.{$companyModel->getKeyName()} 
+                    INNER JOIN {$company->getTable()} as company ON device.{$FIELD_DEVICE_COMPANY_ID} = company.{$company->getKeyName()} 
                     WHERE device.{$FIELD_DEVICE_IS_ACTIVE} = 1 AND company.{$FIELD_COMPANY_IS_ACTIVE} = 1) AS TEMP ";
 
                 $sqlOrder = " ORDER BY ";
 
                 if ( !empty( $company ) ) {
 
-                    $sqlOrder .= " CASE WHEN (TEMP.{$FIELD_COMPANY_NAME} = '{$company}' OR TEMP.{$companyModel->getKeyName()} = '{$company}') THEN 1 ELSE 2 END ASC, ";
+                    $sqlOrder .= " CASE WHEN (TEMP.{$FIELD_COMPANY_NAME} = '{$company}' OR TEMP.{$company->getKeyName()} = '{$company}') THEN 1 ELSE 2 END ASC, ";
 
                 }
 
                 if ( !empty( $excludedCompany ) ) {
 
-                    $sqlOrder .= " CASE WHEN (TEMP.{$FIELD_COMPANY_NAME} = '{$excludedCompany}' OR TEMP.{$companyModel->getKeyName()} = '{$excludedCompany}') THEN 2 ELSE 1 END ASC, ";
+                    $sqlOrder .= " CASE WHEN (TEMP.{$FIELD_COMPANY_NAME} = '{$excludedCompany}' OR TEMP.{$company->getKeyName()} = '{$excludedCompany}') THEN 2 ELSE 1 END ASC, ";
 
                 }
 
-                unset($messageModel);
-                unset($companyModel);
+                unset($message);
+                unset($company);
 
                 $sqlOrder .= " TEMP.{$FIELD_COMPANY_LAST_USED_DATE} ASC, TEMP.{$FIELD_DEVICE_LAST_USED_DATE} ASC";
                 $sql      .= $sqlOrder . ';';
 
                 $device = collect( DB::select( $sql ) )->first();
 
-                if ( empty( $device ) ) { return null; }
+                if ( empty( $device ) ) { throw new SmsApiException( 'No devices available.' ); }
 
                 return $device->{$this->getKeyName()};
 
@@ -112,6 +114,10 @@ class Device extends Model
     {
 
         try {
+
+            $device = self::where( self::FIELD_DEVICE_NUMBER, '=', $deviceNumber )->get();
+
+            if ( !empty( $device ) ) { throw new SmsApiException( 'The Device number already exists.' ); }
 
             $result = DB::table( $this->getTable() )
             ->select( $this->getKeyName() )

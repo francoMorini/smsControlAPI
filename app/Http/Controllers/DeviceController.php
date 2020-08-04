@@ -23,19 +23,19 @@ class DeviceController extends Controller
 
     		$data = $request->only( self::UUID, self::DEVICE_NUMBER, self::COMPANY );
 
-    		$deviceModel  = new Device();
-    		$exists = $deviceModel->thisDeviceExists( $data[ self::UUID ], $data[ self::DEVICE_NUMBER ] );
+    		$device = new Device();
+    		$exists = $device->thisDeviceExists( $data[ self::UUID ], $data[ self::DEVICE_NUMBER ] );
 
     		if( !$exists ) {
 
-    			$deviceModel->{ $deviceModel::FIELD_UUID }          = $data[ self::UUID ];
-    			$deviceModel->{ $deviceModel::FIELD_DEVICE_NUMBER } = $data[ self::DEVICE_NUMBER ];
-    			$deviceModel->{ $deviceModel::FIELD_COMPANY }       = $data[ self::COMPANY ];
-    			$deviceModel->save();
+    			$device->{ $device::FIELD_UUID }          = $data[ self::UUID ];
+    			$device->{ $device::FIELD_DEVICE_NUMBER } = $data[ self::DEVICE_NUMBER ];
+    			$device->{ $device::FIELD_COMPANY }       = $data[ self::COMPANY ];
+    			$device->save();
 
-    			$newDeviceID = $deviceModel->id;
+    			$newDeviceID = $device->id;
 
-    			unset( $deviceModel );
+    			unset( $device );
 
                 return $this->response( $newDeviceID );
 

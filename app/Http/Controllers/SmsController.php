@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\prepareSmsToSend;
 use App\Http\Requests\getPendingMessagesToSend;
+use App\Http\Requests\changeMessageToSent;
 use App\Message;
 
 use Exception;
@@ -29,9 +30,9 @@ class SmsController extends Controller
 
 			$data = $request->only( self::TO, self::MESSAGE );
 
-			$messageModel = new Message();
+			$message = new Message();
 
-			$result = $messageModel->saveSmsForSend(
+			$result = $message->saveSmsForSend(
 
 				$data[ self::MESSAGE ], 
 				$data[ self::TO ], 
@@ -41,9 +42,9 @@ class SmsController extends Controller
 
 			);
 
-			unset( $messageModel );
+			unset( $message );
 
-			return $this->response( $result );
+			return $this->response( 'The message was successfully saved.' );
 
 		} catch ( Exception $e ) { $this->error( $e, $this->controller, '01' ); }
 
@@ -61,14 +62,33 @@ class SmsController extends Controller
 
 			// Actualizar salud del dispositivo (TODO)
 
-			$messageModel = new Message();
-			$message      = $messageModel->getPendingMessages( $data[ self::DEVICE_ID ] );
+			$message        = new Message();
+			$pendingMessage = $message->getPendingMessages( $data[ self::DEVICE_ID ] );
 
-			unset( $messageModel );
+			unset( $message );
 
-			return $this->response( $message );
+			return $this->response( $pendingMessage );
 
 		} catch ( Exception $e ) { $this->error( $e, $this->controller, '02' ); }
+
+	}
+
+	/**/
+	public function changeMessageToSent ( changeMessageToSent $request ) 
+	{
+
+		try {
+
+			$data = $request->only( self::DEVICE_ID, self::MESSAGE_ID );
+
+			$message = new Message();
+			$result  = $message->changeMessageToSent( $data[ self::MESSAGE_ID ], $request->{ self::DEVICE_ID } );
+
+			if ( !$result ) { throw new Exception( 'Something went wrong.' ); }
+
+			return $this->response( 'The status was successfully changed.' );
+
+		} catch ( Exception $e ) { $this->error( $e, $this->controller, '03' ); }
 
 	}
 
