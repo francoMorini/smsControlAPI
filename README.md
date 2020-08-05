@@ -24,8 +24,6 @@ This tool allows you to offer a way to host messages with the recipient. The one
 
 </p>
 
-<p>
+<p> <strong>This system can be useful, for example, to validate an application user via SMS.</strong> </p>
 
-It is not complete yet but version 1 will be available and complete in a few days. With a better explanation of how it works.
-
-</p>
+<p> It is not complete yet but version 1 will be available and complete in a few days. With a better explanation of how it works. </p>
